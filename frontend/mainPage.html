@@ -20,17 +20,38 @@
     </style>
   </head>
   <body>
+    <div style="display:flex; gap:20px; margin:20px;">
+      <input type="text" class="search-bar" placeholder="Search products..." />
 
-    <input 
-      type="text" 
-      class="search-bar" 
-      placeholder="Search products..."
-    />
+      <select class="category-filter">
+        <option value="all">All Categories</option>
+      </select>
+
+      <select class="sort-filter">
+        <option value="default">Sort By</option>
+        <option value="price-high-to-low">Price (high to low)</option>
+        <option value="price-low-to-high">Price (low to high)</option>
+        <option value="quantity-high-to-low">Quantity (high to low)</option>
+        <option value="quantity-low-to-high">Quantity (low to high)</option>
+      </select>
+    </div>
+
+    <div class="loading" style="display:none; text-align:center;">
+      <h3>Loading products...</h3>
+    </div>
+
+    <div class="empty-state" style="display:none; text-align:center;">
+      <h3>No products found.</h3>
+    </div>
 
     <div class="product-array"></div>
 
-    <a href="addProduct.html">Add product</a>
+    <div style="margin:20px;">
+      <a href="addProduct.html">Add product</a> |
+      <a href="dashboard.html">View Dashboard</a>
+    </div>
 
     <script type="module" src="scripts/generatePage.js"></script>
   </body>
+
 </html>
