@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Input Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        input[type="file"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Ensures padding doesn't widen the element */
+        }
+        textarea {
+            resize: vertical;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        /* New styling for the link container */
+        .form-footer {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .form-footer a {
+            color: #007BFF;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+        <h2>Add New Product</h2>
+        <form action="/submit-product" method="POST" enctype="multipart/form-data" class="add-product-form">
+            
+          <div class="form-group">
+              <label for="name">Product Name</label>
+              <input type="text" id="name" name="name" required>
+          </div>
+
+          <div class="form-group">
+              <label for="description">Description</label>
+              <textarea id="description" name="description" rows="4"></textarea>
+          </div>
+
+          <div class="form-group">
+              <label for="category">Category</label>
+              <input type="text" id="category" name="category">
+          </div>
+
+          <div class="form-group">
+              <label for="price">Price</label>
+              <input type="number" id="price" name="price" min="0" step="0.01" required>
+          </div>
+
+          <div class="form-group">
+              <label for="quantity">Quantity</label>
+              <input type="number" id="quantity" name="quantity" min="0" required>
+          </div>
+
+          <div class="form-group">
+              <label for="weight">Weight (kg/lbs)</label>
+              <input type="number" id="weight" name="weight" step="any">
+          </div>
+
+          <div class="form-group">
+              <label for="image">Product Image</label>
+              <input type="file" id="image" name="image" accept="image/*">
+          </div>
+
+          <button type="submit">Submit Product</button>
+        </form>
+        <div class="form-footer">
+          <a href='mainPage.html'>Go To Main Page</a>
+        </div>
+    </div>
+    <script type="module" src="scripts/addProduct.js"></script>
+  </body>
+</html>

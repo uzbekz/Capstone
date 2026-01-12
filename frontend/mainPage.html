@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Main Page</title>
+    <style>
+      .product-array {
+        display: flex;
+        flex-wrap: wrap;
+        gap : 50px;
+        padding-left: 30px;
+      }
+      .search-bar {
+        margin: 20px;
+        width: 300px;
+        padding: 8px;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <input 
+      type="text" 
+      class="search-bar" 
+      placeholder="Search products..."
+    />
+
+    <div class="product-array"></div>
+
+    <a href="addProduct.html">Add product</a>
+
+    <script type="module" src="scripts/generatePage.js"></script>
+  </body>
+</html>
