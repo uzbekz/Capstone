@@ -3,35 +3,50 @@ import multer from 'multer';
 import Product from './models/Product.js';
 import sequelize from './db.js';
 import cors from 'cors';
-
+import authRoutes from './routes/auth.js';
+import { authenticate, authorize } from './middleware/auth.js';
+import User from './models/User.js';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Multer config
+app.use('/auth', authRoutes);
+
+// Multer
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// DB connection check
+// DB check connection
 sequelize.authenticate()
   .then(() => console.log('Database connected'))
   .catch(err => console.error('DB error:', err));
 
-// View all products
+  //creats the users table if not exits and connects to the table
+sequelize.sync()
+  .then(() => console.log("All models synced (tables created)"))
+  .catch(err => console.error("Sync error:", err))
+
+// Public routes
 app.get('/products', async (req, res) => {
-  try {
-    const products = await Product.findAll();
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const products = await Product.findAll();
+  res.json(products);
 });
 
-// Add product WITH image
-app.post('/products/add', upload.single('image'), async (req, res) => {
-  try {
+app.get('/products/:id', async (req, res) => {
+  const product = await Product.findByPk(req.params.id);
+  if (!product) return res.status(404).json({ message: "Not found" });
+  res.json(product);
+});
+
+// Protected routes
+app.post(
+  '/products/add',
+  authenticate,
+  authorize('product_manager'),
+  upload.single('image'),
+  async (req, res) => {
     const { name, description, category, price, quantity, weight } = req.body;
 
     const newProduct = await Product.create({
@@ -41,75 +56,37 @@ app.post('/products/add', upload.single('image'), async (req, res) => {
       price,
       quantity,
       weight,
-      image: req.file ? req.file.buffer : null   // Store image as BLOB
+      image: req.file ? req.file.buffer : null
     });
 
     res.status(201).json(newProduct);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
   }
-});
+);
 
+app.put(
+  '/products/:id',
+  authenticate,
+  authorize('product_manager'),
+  upload.single('image'),
+  async (req, res) => {
+    const updateData = { ...req.body };
 
-// Update product (with optional new image)
-app.put('/products/:id', upload.single('image'), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, description, category, price, quantity, weight } = req.body;
+    if (req.file) updateData.image = req.file.buffer;
 
-    const updateData = {
-      name,
-      description,
-      category,
-      price,
-      quantity,
-      weight
-    };
-
-    if (req.file) {
-      updateData.image = req.file.buffer;
-    }
-
-    const [updatedRows] = await Product.update(updateData, {
-      where: { id }
-    });
-
-    if (updatedRows === 0) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    res.json({ message: 'Product updated successfully' });
-
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    await Product.update(updateData, { where: { id: req.params.id } });
+    res.json({ message: "Product updated" });
   }
-});
+);
 
-// Delete product
-app.delete('/products/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const deleted = await Product.destroy({
-      where: { id }
-    });
-
-    if (!deleted) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    res.json({ message: 'Product deleted successfully' });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+app.delete(
+  '/products/:id',
+  authenticate,
+  authorize('product_manager'),
+  async (req, res) => {
+    await Product.destroy({ where: { id: req.params.id } });
+    res.json({ message: "Product deleted" });
   }
-});
-
-app.get('/products/:id', async (req, res) => {
-  const product = await Product.findByPk(req.params.id);
-  if (!product) return res.status(404).json({ message: "Not found" });
-  res.json(product);
-});
+);
 
 app.listen(5000, () => {
   console.log('Server is listening on port 5000');
