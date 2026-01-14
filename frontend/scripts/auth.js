@@ -18,7 +18,7 @@ if (registerForm) {
 
     const data = await res.json();
 
-    if (res.ok) {
+    if (res.ok) { // res is a Response object returned by fetch() //// res.ok is a boolean property on that object. It is true if the HTTP status code is in the 200–299 range (successful response). It is false otherwise (e.g., 400, 404, 500).
       alert("Registered successfully!");
       window.location.href = "login.html";
     } else {
@@ -30,6 +30,7 @@ if (registerForm) {
 // LOGIN
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
+    
     e.preventDefault();
 
     const email = document.getElementById("email").value;
@@ -45,11 +46,17 @@ if (loginForm) {
 
     if (res.ok) {
       localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+
       alert("Login successful!");
 
-      // TEMP redirect (we'll improve later)
-      window.location.href = "mainPage.html";
-    } else {
+      if (data.role === "customer") {
+        window.location.href = "customerProducts.html";
+      } else {
+        window.location.href = "mainPage.html";
+      }
+    }
+    else {
       alert(data.message);
     }
   });
