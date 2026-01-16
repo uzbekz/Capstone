@@ -6,6 +6,10 @@ import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import { authenticate, authorize } from './middleware/auth.js';
 import User from './models/User.js';
+import Order from "./models/Order.js";
+import OrderItem from "./models/OrderItem.js";
+OrderItem.belongsTo(Product, { foreignKey: "product_id" });
+
 
 const app = express();
 
@@ -87,6 +91,101 @@ app.delete(
     res.json({ message: "Product deleted" });
   }
 );
+
+app.post(
+  "/orders",
+  authenticate,
+  authorize("customer"),
+  async (req, res) => {
+    try {
+      const { items } = req.body;
+      const customerId = req.user.id;
+
+      let total = 0;
+
+      // Validate stock
+      for (const item of items) {
+        const product = await Product.findByPk(item.product_id);
+
+        if (!product || product.quantity < item.quantity) {
+          return res.status(400).json({
+            message: `Not enough stock for ${product?.name}`
+          });
+        }
+
+        total += product.price * item.quantity;
+      }
+
+      // Create order
+      const order = await Order.create({
+        customer_id: customerId,
+        total_price: total
+      });
+
+      // Create order items
+      for (const item of items) {
+        const product = await Product.findByPk(item.product_id);
+
+        await OrderItem.create({
+          order_id: order.id,
+          product_id: product.id,
+          quantity: item.quantity,
+          price: product.price
+        });
+      }
+
+      res.status(201).json({
+        message: "Order placed successfully",
+        orderId: order.id
+      });
+
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+app.get(
+  "/orders",
+  authenticate,
+  authorize("customer"),
+  async (req, res) => {
+    try {
+      const customerId = req.user.id;
+
+      const orders = await Order.findAll({
+        where: { customer_id: customerId },
+        order: [["created_at", "DESC"]]
+      });
+
+      const result = [];
+
+      for (const order of orders) {
+        const items = await OrderItem.findAll({
+          where: { order_id: order.id },
+          include: [
+            {
+              model: Product,
+              attributes: ["name"]
+            }
+          ]
+        });
+
+        result.push({
+          ...order.toJSON(),
+          items
+        });
+      }
+
+      res.json(result);
+
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+
 
 app.listen(5000, () => {
   console.log('Server is listening on port 5000');

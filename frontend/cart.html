@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Your Cart</title>
+
+    <style>
+      body { font-family: Arial; }
+      .cart-container { padding: 20px; }
+      .item {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 15px;
+        width: 400px;
+      }
+      input { width: 60px; }
+    </style>
+  </head>
+
+  <body>
+
+    <h2>Your Cart</h2>
+
+    <div class="cart-container"></div>
+
+    <h3 id="totalPrice"></h3>
+
+    <button id="checkoutBtn">Checkout</button>
+    <button id="clearCartBtn">Clear Cart</button>
+
+    <br><br>
+    <a href="customerProducts.html">⬅ Back to Products</a>
+
+    <script type="module" src="scripts/cart.js"></script>
+  </body>
+</html>

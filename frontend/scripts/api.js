@@ -1,32 +1,49 @@
-export async function getProducts() {
-  const rawProducts = await fetch('http://localhost:5000/products');
-  const products = await rawProducts.json();
-  return products;
+const BASE_URL = "http://localhost:5000";
+
+function getAuthHeader() {
+  const token = localStorage.getItem("token");
+  return token ? { "Authorization": `Bearer ${token}` } : {};
 }
 
+// PUBLIC
+export async function getProducts() {
+  const res = await fetch(`${BASE_URL}/products`);
+  return await res.json();
+}
+
+// PROTECTED (Product Manager)
 export async function addProduct(formData) {
-  const response = await fetch('http://localhost:5000/products/add', {
-    method: 'POST',
-    body: formData   // IMPORTANT: FormData, not JSON
+  const res = await fetch(`${BASE_URL}/products/add`, {
+    method: "POST",
+    headers: {
+      ...getAuthHeader()
+    },
+    body: formData
   });
 
-  return await response.json();
+  return await res.json();
 }
 
 export async function deleteProduct(id) {
-  await fetch(`http://localhost:5000/products/${id}`, {
-    method: 'DELETE'
+  await fetch(`${BASE_URL}/products/${id}`, {
+    method: "DELETE",
+    headers: {
+      ...getAuthHeader()
+    }
   });
 }
 
 export async function updateProduct(id, formData) {
-  await fetch(`http://localhost:5000/products/${id}`, {
-    method: 'PUT',
+  await fetch(`${BASE_URL}/products/${id}`, {
+    method: "PUT",
+    headers: {
+      ...getAuthHeader()
+    },
     body: formData
   });
 }
 
 export async function getProductById(id) {
-  const res = await fetch(`http://localhost:5000/products/${id}`);
+  const res = await fetch(`${BASE_URL}/products/${id}`);
   return await res.json();
 }
