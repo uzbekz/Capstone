@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Orders</title>
+  <style>
+    body { font-family: Arial; }
+    .order {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin: 20px;
+      width: 600px;
+    }
+    .pending { color: orange; }
+    .dispatched { color: green; }
+    .cancelled { color: red; }
+  </style>
+</head>
+
+<body>
+
+  <h2>All Orders</h2>
+
+  <div class="orders-container"></div>
+
+  <br>
+  <a href="mainPage.html">⬅ Back to Admin Dashboard</a>
+
+  <script type="module" src="scripts/adminOrders.js"></script>
+</body>
+</html>

@@ -185,6 +185,106 @@ app.get(
   }
 );
 
+app.get(
+  "/orders/all",
+  authenticate,
+  authorize("product_manager"),
+  async (req, res) => {
+    try {
+      const orders = await Order.findAll({
+        order: [["created_at", "DESC"]]
+      });
+
+      const result = [];
+
+      for (const order of orders) {
+        const items = await OrderItem.findAll({
+          where: { order_id: order.id },
+          include: [
+            { model: Product, attributes: ["name", "quantity"] }
+          ]
+        });
+
+        result.push({
+          ...order.toJSON(),
+          items
+        });
+      }
+
+      res.json(result);
+
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+app.patch(
+  "/orders/:id/dispatch",
+  authenticate,
+  authorize("product_manager"),
+  async (req, res) => {
+    try {
+      const order = await Order.findByPk(req.params.id);
+
+      if (!order) return res.status(404).json({ message: "Order not found" });
+
+      if (order.status !== "pending") {
+        return res.status(400).json({ message: "Order already processed" });
+      }
+
+      const items = await OrderItem.findAll({
+        where: { order_id: order.id }
+      });
+
+      // Deduct stock
+      for (const item of items) {
+        const product = await Product.findByPk(item.product_id);
+
+        if (product.quantity < item.quantity) {
+          return res.status(400).json({
+            message: `Insufficient stock for ${product.name}`
+          });
+        }
+
+        await product.update({
+          quantity: product.quantity - item.quantity
+        });
+      }
+
+      await order.update({ status: "dispatched" });
+
+      res.json({ message: "Order dispatched successfully" });
+
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+app.patch(
+  "/orders/:id/cancel",
+  authenticate,
+  authorize("product_manager"),
+  async (req, res) => {
+    try {
+      const order = await Order.findByPk(req.params.id);
+
+      if (!order) return res.status(404).json({ message: "Order not found" });
+
+      if (order.status !== "pending") {
+        return res.status(400).json({ message: "Order already processed" });
+      }
+
+      await Order.update({ status: "cancelled" });
+
+      res.json({ message: "Order cancelled" });
+
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
 
 
 app.listen(5000, () => {
