@@ -8,6 +8,7 @@ import { authenticate, authorize } from './middleware/auth.js';
 import User from './models/User.js';
 import Order from "./models/Order.js";
 import OrderItem from "./models/OrderItem.js";
+import { Op } from "sequelize";
 OrderItem.belongsTo(Product, { foreignKey: "product_id" });
 
 
@@ -33,9 +34,41 @@ sequelize.sync()
   .catch(err => console.error("Sync error:", err))
 
 // Public routes
-app.get('/products', async (req, res) => {
-  const products = await Product.findAll();
-  res.json(products);
+app.get("/products", async (req, res) => {
+  try {
+    const { search, category, sort } = req.query;
+
+    const where = {};
+
+    // 🔍 Search
+    if (search) {
+      where[Op.or] = [
+        { name: { [Op.like]: `%${search}%` } },
+        { category: { [Op.like]: `%${search}%` } }
+      ];
+    }
+
+    // 🏷 Category
+    if (category && category !== "all") {
+      where.category = category;
+    }
+
+    // ↕ Sorting
+    const order = [];
+    if (sort === "price-low-to-high") order.push(["price", "ASC"]);
+    if (sort === "price-high-to-low") order.push(["price", "DESC"]);
+    if (sort === "quantity-low-to-high") order.push(["quantity", "ASC"]);
+    if (sort === "quantity-high-to-low") order.push(["quantity", "DESC"]);
+
+    const products = await Product.findAll({
+      where,
+      order
+    });
+
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/products/:id', async (req, res) => {
@@ -201,7 +234,7 @@ app.get(
         const items = await OrderItem.findAll({
           where: { order_id: order.id },
           include: [
-            { model: Product, attributes: ["name", "quantity"] }
+            { model: Product, attributes: ["name", "quantity", "image"] }
           ]
         });
 
@@ -270,17 +303,22 @@ app.patch(
     try {
       const order = await Order.findByPk(req.params.id);
 
-      if (!order) return res.status(404).json({ message: "Order not found" });
-
-      if (order.status !== "pending") {
-        return res.status(400).json({ message: "Order already processed" });
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
       }
 
-      await Order.update({ status: "cancelled" });
+      if (order.status !== "pending") {
+        return res
+          .status(400)
+          .json({ message: "Order already processed" });
+      }
 
-      res.json({ message: "Order cancelled" });
+      await order.update({ status: "cancelled" });
+
+      res.json({ message: "Order cancelled successfully" });
 
     } catch (err) {
+      console.error(err);
       res.status(500).json({ error: err.message });
     }
   }
